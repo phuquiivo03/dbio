@@ -149,8 +149,23 @@ module dbio::dbio {
     ) {
         let sender = tx_context::sender(ctx);
         let is_existed = existed(_dbio_app, ctx);
-        assert!(is_existed, EUserNotExist);
+        if(!is_existed) {
+            new_user(_dbio_app, ctx);
+            return;
+        };
         let user = dof::borrow<address, User>(&mut _dbio_app.id, sender);
+        event::emit(GetDataEvent {
+            id: object::uid_to_inner(&user.id),
+            components: user.components
+        });
+    }
+
+    public entry fun get_user_components(
+        u_address: address,
+        _dbio_app: &mut DBioApp,
+        ctx: &mut TxContext
+    ) {
+        let user = dof::borrow<address, User>(&mut _dbio_app.id, u_address);
         event::emit(GetDataEvent {
             id: object::uid_to_inner(&user.id),
             components: user.components
